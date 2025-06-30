@@ -7,8 +7,13 @@ namespace WhiteLagoon.Web.Controllers
     public class VillaController : Controller
     {
         private readonly IUnityOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public VillaController(IUnityOfWork unitOfWork) => _unitOfWork = unitOfWork;
+        public VillaController(IUnityOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
+        {
+            _unitOfWork = unitOfWork;
+            _webHostEnvironment = webHostEnvironment;
+        }
 
         public IActionResult Index()
         {
@@ -31,10 +36,27 @@ namespace WhiteLagoon.Web.Controllers
 
             if (ModelState.IsValid)
             {
+                if (obj.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(obj.Image.FileName);
+                    string imagePath = Path.Combine(_webHostEnvironment.WebRootPath, @"images\VillaImage", fileName);
+
+                    using (var fileStream = new FileStream(Path.Combine(imagePath, fileName), FileMode.Create))
+                    {
+                        obj.Image.CopyTo(fileStream);
+                    }
+
+                    obj.ImageUrl = @"\images\VillaImage\" + fileName;
+                }
+                else
+                {
+                    obj.ImageUrl = "https://placehold.co/600x400";
+                }
+
                 _unitOfWork.Villa.Add(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "Villa has been created successfully.";
-                return RedirectToAction(nameof(Index)); 
+                return RedirectToAction(nameof(Index));
             }
 
             TempData["error"] = "The villa could not be created.";
@@ -58,6 +80,29 @@ namespace WhiteLagoon.Web.Controllers
         {
             if (ModelState.IsValid && obj.Id > 0)
             {
+                if (obj.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(obj.Image.FileName);
+                    string imagePath = Path.Combine(_webHostEnvironment.WebRootPath, @"images\VillaImage", fileName);
+
+                    if (!string.IsNullOrEmpty(obj.ImageUrl))
+                    {
+                        var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, obj.ImageUrl.TrimStart('\\'));
+
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    using (var fileStream = new FileStream(Path.Combine(imagePath, fileName), FileMode.Create))
+                    {
+                        obj.Image.CopyTo(fileStream);
+                    }
+
+                    obj.ImageUrl = @"\images\VillaImage\" + fileName;
+                }
+
                 _unitOfWork.Villa.Update(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "Villa has been updated successfully.";
@@ -83,11 +128,21 @@ namespace WhiteLagoon.Web.Controllers
         [HttpPost]
         public IActionResult Delete(Villa obj)
         {
-            Villa villaFromDb = _unitOfWork.Villa.Get(u => u.Id == obj.Id);
+            Villa objFromDb = _unitOfWork.Villa.Get(u => u.Id == obj.Id);
 
-            if (villaFromDb is not null)
+            if (objFromDb is not null)
             {
-                _unitOfWork.Villa.Remove(villaFromDb);
+                if (!string.IsNullOrEmpty(obj.ImageUrl))
+                {
+                    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, objFromDb.ImageUrl.TrimStart('\\'));
+
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
+                _unitOfWork.Villa.Remove(objFromDb);
                 _unitOfWork.Save();
                 TempData["success"] = "Villa has been deleted successfully.";
                 return RedirectToAction(nameof(Index));
