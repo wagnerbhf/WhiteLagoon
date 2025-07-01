@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -22,5 +23,9 @@ namespace WhiteLagoon.Domain.Entities
         public string? ImageUrl { get; set; }
         public DateTime? Created_Date { get; set; }
         public DateTime? Updated_Date { get; set; }
+        [ValidateNever]
+        public IEnumerable<Amenity> VillaAmenity { get; set; }
+        [NotMapped]
+        public bool IsAvailable { get; set; } = true;
     }
 }
