@@ -35,6 +35,9 @@ dotnet_diagnostic.CS8603.severity = none
 # CS8601: Possible null reference assignment.
 dotnet_diagnostic.CS8601.severity = none
 
+# ASP0019: Suggest using IHeaderDictionary.Append or the indexer
+dotnet_diagnostic.ASP0019.severity = none
+
 [*.{cs,vb}]
 #### Naming styles ####
 

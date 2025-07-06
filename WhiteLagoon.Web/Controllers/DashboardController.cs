@@ -11,6 +11,7 @@ namespace WhiteLagoon.Web.Controllers
         {
             _dashboardService = dashboardService;
         }
+
         public IActionResult Index()
         {
             return View();

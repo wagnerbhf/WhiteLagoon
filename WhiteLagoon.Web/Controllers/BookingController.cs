@@ -108,7 +108,6 @@ namespace WhiteLagoon.Web.Controllers
             _bookingService.UpdateStripePaymentID(booking.Id, session.Id, session.PaymentIntentId);
             Response.Headers.Add("Location", session.Url);
             return new StatusCodeResult(303);
-
         }
 
         [Authorize]
